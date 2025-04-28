@@ -1,4 +1,5 @@
 ## Задачі
+- [Задача №18 (композиція)](#задача-18)
 - Принципи
     - [Задача №17 (принцип Кента Бека)](#задача-17)
     - [Задача №16 (принцип YAGNI)](#задача-16)
@@ -19,6 +20,62 @@
 - [Задача №1 (про підняття / hoisting)](#задача-1)
 
 ---
+
+### Задача 18
+У веб-додатку потрібно форматувати дані користувача для відображення: обрізати пробіли в імені, зробити першу літеру великою, додати префікс "User:". 
+
+Як реалізувати formatUserName для `" john " → "User: John"`? Виберіть варіант, який найкраще застосовує композицію чистих функцій, забезпечуючи модульність і простоту.
+
+Відповідь 1. Композиція чистих функцій:
+```js
+const trim = str => str.trim();
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+const addPrefix = str => `User: ${str}`;
+const compose = (...fns) => x => fns.reduceRight((acc, fn) => fn(acc), x);
+const formatUserName = compose(addPrefix, capitalize, trim);
+```
+
+Відповідь 2. Одна функція з усією логікою:
+```js
+const formatUserName = str => {
+  const trimmed = str.trim();
+  const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  return `User: ${capitalized}`;
+};
+```
+
+Відповідь 3. Чисті функції з послідовним викликом:
+```js
+const trim = str => str.trim();
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+const addPrefix = str => `User: ${str}`;
+const formatUserName = str => addPrefix(capitalize(trim(str)));
+```
+
+Відповідь 4. Функція з валідацією:
+```js
+const trim = str => str.trim();
+const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+const addPrefix = str => (str ? `User: ${str}` : "User: Unknown");
+const formatUserName = str => {
+  const trimmed = trim(str);
+  return trimmed ? addPrefix(capitalize(trimmed)) : addPrefix("");
+};
+```
+
+<details>
+  <summary><strong>Відповідь</strong></summary>
+
+Композиція чистих функцій поєднує незалежні, детерміновані функції для створення модульного коду. Варіант 1 використовує compose для об’єднання `trim`, `capitalize` та `addPrefix`, кожна з яких виконує єдину задачу. Це забезпечує декларативність, повторне використання та легке тестування. Код інтуїтивний для новачків і відповідає функціональній парадигмі для досвідчених розробників.
+
+Чому інші варіанти не відповідають:
+
+- Варіант 2: Монолітна функція втрачає модульність, ускладнює повторне використання та тестування.
+- Варіант 3: Послідовний виклик чистих функцій не використовує композицію, знижуючи абстракцію та гнучкість.
+- Варіант 4: Валідація для порожніх рядків додає надлишкову логіку, не передбачену вимогою, порушуючи простоту.
+
+</details>
+
 
 ### Задача 17
 Ви працюєте над системою управління задачами для невеликої команди. Поточна вимога: вивести список із назвою та статусом (наприклад, "Write report (To Do)"). Вимога проста, але команда пропонує додати сортування, фільтри чи класи "на майбутнє". Як реалізувати displayTasks, щоб відповідати принципу Кента Бека? 
