@@ -1,4 +1,5 @@
 ## Задачі
+- [Задача №20 (імутабельність)](#задача-20)
 - [Задача №19 (каррування)](#задача-19)
 - [Задача №18 (композиція)](#задача-18)
 - Принципи
@@ -21,68 +22,72 @@
 - [Задача №1 (про підняття / hoisting)](#задача-1)
 
 ---
-### Задача 19
-У веб-магазині потрібно форматувати ціну: додати валюту, округлити до двох знаків, застосувати знижку. Вимога: створити гнучку функцію formatPrice для "`$90.00`" з `100`, знижки `0.1`, валюти "`$`". 
+### Задача 20
+У системі бронювання готелів масив reservations містить інформацію про бронювання. Користувач хоче змінити статус бронювання з id: 101 на "Confirmed". Пряме оновлення даних у масиві часто викликає помилки: наприклад, інші функції, що відображають статистику, бачать неочікувані зміни, а скасування операції стає складним через втрату початкового стану. 
 
-Як реалізувати, щоб функція дозволяла поетапно задавати параметри, забезпечувала модульність і гнучкість?
+Як реалізувати функцію, щоб безпечно оновити статус?
 
-Відповідь 1. Композиція чистих функцій:
+Приклад даних:
 ```js
-const applyDiscount = (price, discount) => price * (1 - discount);
-const formatCurrency = (price, currency) => `${currency}${price.toFixed(2)}`;
-
-const compose = (...fns) => x => fns.reduceRight((acc, fn) => fn(acc), x);
-const formatPrice = compose(
-  price => formatCurrency(price, "$"),
-  price => applyDiscount(price, 0.1)
-);
-
-const result = formatPrice(100); // "$90.00"
+const reservations = [
+  { id: 101, room: "A1", status: "Pending" },
+  { id: 102, room: "B2", status: "Confirmed" }
+];
 ```
 
-Відповідь 2. Каррування:
+Відповідь 1.
 ```js
-const formatPrice = currency => discount => price => {
-  const discounted = price * (1 - discount);
-  return `${currency}${discounted.toFixed(2)}`;
+const updateReservationStatus = (reservations, id, newStatus) => {
+  return reservations.map(res => 
+    res.id === id ? { ...res, status: newStatus } : res
+  );
 };
-const result = formatPrice("$")(0.1)(100); // "$90.00"
+const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
+```
+
+Відповідь 2.
+```js
+const updateReservationStatus = (reservations, id, newStatus) => {
+  const res = reservations.find(res => res.id === id);
+  if (res) res.status = newStatus;
+  return reservations;
+};
+const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
 ```
 
 Відповідь 3. Одна функція з усією логікою:
 ```js
-const formatPrice = (price, discount, currency) => {
-  const discounted = price * (1 - discount);
-  return `${currency}${discounted.toFixed(2)}`;
+const updateReservationStatus = (reservations, id, newStatus) => {
+  const newReservations = reservations.slice();
+  const res = newReservations.find(res => res.id === id);
+  if (res) res.status = newStatus;
+  return newReservations;
 };
-const result = formatPrice(100, 0.1, "$"); // "$90.00"
+const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
 ```
 
 Відповідь 4. Часткове застосування:
 ```js
-const formatPrice = (currency, discount, price) => {
-  const discounted = price * (1 - discount);
-  return `${currency}${discounted.toFixed(2)}`;
+const updateReservationStatus = (reservations, id, newStatus) => {
+  const index = reservations.findIndex(res => res.id === id);
+  if (index !== -1) {
+    reservations[index].status = newStatus;
+  }
+  return reservations;
 };
-const formatPriceUSD = formatPrice.bind(null, "$", 0.1);
-const result = formatPriceUSD(100); // "$90.00"
+const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
 ```
 
 <details>
   <summary><strong>Відповідь</strong></summary>
 
-Каррування розбиває функцію з кількома аргументами на послідовність функцій з одним аргументом, забезпечуючи гнучке часткове застосування. Варіант 2 реалізує `formatPrice` як каррувану функцію, дозволяючи поетапно задавати `currency`, `discount`, `price`. Це підвищує модульність і повторне використання (наприклад, `formatPrice("$")`). На відміну від композиції, каррування фокусується на аргументах, а не потоці даних.
+Імутабельність у JavaScript — це створення нових даних без зміни оригіналу, що забезпечує стабільність і уникає побічних ефектів. У варіанті 1 метод map генерує новий масив, а spread-оператор (`...`) копіює об’єкт із новим статусом. Це декларативний підхід, який не мутує початковий стан, що ідеально для React чи Redux. Код читабельний, простий і підходить для масштабування.
 
-Чому інші варіанти не відповідають:
+Чому інші варіанти гірші:
 
-Варіант 1: Застосовує композицію, комбінуючи функції для обробки потоку даних, але не дозволяє поетапно задавати аргументи, як каррування.
-Варіант 3: Монолітна функція приймає всі аргументи одразу, втрачаючи гнучкість і модульність каррування.
-Варіант 4: Часткове застосування через bind фіксує аргументи, але не створює послідовність функцій, обмежуючи гнучкість каррування.
-
-Різниця між карруванням і композицією:
-
-Каррування: Перетворює `f(a, b, c)` у `f(a)(b)(c)`, дозволяючи створювати спеціалізовані функції поетапно (наприклад, `formatPrice("$")(0.1)`).
-Композиція: Об’єднує функції, де вихід однієї є входом іншої (варіант 1), фокусуючись на трансформації даних, а не на аргументах.
+- Варіант 2: Мутує об’єкт напряму (`res.status = newStatus`), порушуючи імутабельність.
+- Варіант 3: Копіює масив (`slice`), але мутує об’єкт усередині, що не відповідає принципу.
+- Варіант 4: Змінює оригінальний масив через індекс, ламаючи стабільність даних.
 
 </details>
 
