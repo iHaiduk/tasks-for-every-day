@@ -55,7 +55,7 @@ const updateReservationStatus = (reservations, id, newStatus) => {
 const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
 ```
 
-Відповідь 3. Одна функція з усією логікою:
+Відповідь 3.
 ```js
 const updateReservationStatus = (reservations, id, newStatus) => {
   const newReservations = reservations.slice();
@@ -66,7 +66,7 @@ const updateReservationStatus = (reservations, id, newStatus) => {
 const updatedReservations = updateReservationStatus(reservations, 101, "Confirmed");
 ```
 
-Відповідь 4. Часткове застосування:
+Відповідь 4.
 ```js
 const updateReservationStatus = (reservations, id, newStatus) => {
   const index = reservations.findIndex(res => res.id === id);
