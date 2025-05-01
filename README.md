@@ -73,7 +73,7 @@ const getPrice = (item: object): number => {
 };
 
 const item1 = { price: 10 };
-const item2 = { price: "10" }; // Повертає 0
+const item2 = { price: "10" };
 ```
 
 <details>
