@@ -1,4 +1,6 @@
 ## Задачі
+- TypeScript
+  - [Задача №21 (Безпечне типізування)](#задача-21)
 - [Задача №20 (імутабельність)](#задача-20)
 - [Задача №19 (каррування)](#задача-19)
 - [Задача №18 (композиція)](#задача-18)
@@ -21,6 +23,71 @@
 - [Задача №2 (про this)](#задача-2)
 - [Задача №1 (про підняття / hoisting)](#задача-1)
 
+---
+
+### Задача 21
+У нас є функція getPrice котра ламається, якщо price не число. Ми потребуємо певного рішення, щоб типізувати getPrice, щоб уникнути помилок?
+
+Виберіть варіант, який забезпечує типобезпеку.
+
+Приклад даних:
+```js
+function getPrice(item) {
+  return item.price;
+}
+const item1 = { price: 10 };
+const item2 = { price: "10" };
+```
+
+Відповідь 1.
+```js
+interface Item {
+  price: number;
+}
+const getPrice = (item: Item): number => item.price;
+
+const item1: Item = { price: 10 };
+const item2 = { price: "10" };
+```
+
+Відповідь 2.
+```js
+const getPrice = (item: any): number => item.price;
+
+const item1 = { price: 10 };
+const item2 = { price: "10" };
+```
+
+Відповідь 3.
+```js
+const getPrice = (item: { price: any }): number => item.price;
+
+const item1 = { price: 10 };
+const item2 = { price: "10" };
+```
+
+Відповідь 4.
+```js
+const getPrice = (item: object): number => {
+  return typeof item.price === "number" ? item.price : 0;
+};
+
+const item1 = { price: 10 };
+const item2 = { price: "10" }; // Повертає 0
+```
+
+<details>
+  <summary><strong>Відповідь</strong></summary>
+
+TypeScript додає статичну типізацію, виявляючи помилки на етапі компіляції. Варіант 1 використовує інтерфейс Item для суворого визначення price як числа, запобігаючи некоректним даним (наприклад, price: "`10`"). Це простий вступ до TypeScript, що показує типобезпеку, зрозумілий новачкам і корисний для досвідчених.
+
+Чому інші варіанти гірші:
+
+- Варіант 2: `any` втрачає переваги TypeScript, дозволяючи будь-які дані.
+- Варіант 3: price: `any` не захищає від нечислових значень.
+- Варіант 4: Перевірка під час виконання суперечить меті TypeScript — виявляти помилки на компіляції.
+
+</details>
 ---
 
 ### Задача 20
